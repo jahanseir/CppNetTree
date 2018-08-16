@@ -1,15 +1,15 @@
 
-#include "pointlocation.h"
-#include "nettree.h"
+#include "pointlocation.hpp"
 
 #include <iostream>
 #include <math.h>
+#include "nettree.hpp"
 
-EagerPointLocation::EagerPointLocation(NetTree<EagerPointLocation> &tree, vector<const Point*> uninserted_points)
+EagerPointLocation::EagerPointLocation(NetTree<EagerPointLocation> &tree, vector<const BasePoint*> uninserted_points)
 : PointLocation<EagerPointLocation>(tree, uninserted_points)
 {
 	innercellmap[root] = set_points();
-	for(const Point *p: uninserted_points)
+	for(const BasePoint *p: uninserted_points)
 	{
 		centermap[p] = root;
 		innercellmap[root].insert(p);
@@ -55,14 +55,14 @@ set_points EagerPointLocation::GetCell(Node &node) const
 	return result;
 }
 
-float EagerPointLocation::DistToCenter(const Point &point, const Node* nearest) const
+float EagerPointLocation::DistToCenter(const BasePoint &point, const Node* nearest) const
 {
 	if(!nearest)
 		nearest = centermap.at(&point);
 	return metric->Distance(point, *nearest->GetPoint());
 }
 
-void EagerPointLocation::RemovePoint(const Point &point)
+void EagerPointLocation::RemovePoint(const BasePoint &point)
 {
 	Node* cent = GetCenter(point);
 	innercellmap[cent].erase(&point);
@@ -85,7 +85,7 @@ void EagerPointLocation::UpdateOnInsertion(Node &node)
 	set_points belowlevelpoints = GetOuterCell(GetChildren(node.GetRelatives()));
 	nearbypoints.insert(samelevelpoints.begin(), samelevelpoints.end());
 	nearbypoints.insert(belowlevelpoints.begin(), belowlevelpoints.end());
-	for(const Point *p: nearbypoints)
+	for(const BasePoint *p: nearbypoints)
 		TryChangeCenter(*p, node);
 }
 void EagerPointLocation::UpdateOnDeletion(Node &node)
@@ -93,13 +93,13 @@ void EagerPointLocation::UpdateOnDeletion(Node &node)
 	Node *par = node.GetParent();
 	set_points outercellcopy = GetOuterCell(node);
 	// we need a copy of the points in the outer cell of node because the outer cell may change in the for loop
-	for(const Point *p: outercellcopy)
+	for(const BasePoint *p: outercellcopy)
 	{
 		ChangeCenter(*p, node, *par);
 		centermap[p] = par;
 	}
 	outercellmap.erase(&node);
-	for(const Point *p: GetInnerCell(node))
+	for(const BasePoint *p: GetInnerCell(node))
 		centermap[p] = par;
 	innercellmap[par].insert(innercellmap[&node].begin(), innercellmap[&node].end());
 	innercellmap.erase(&node);
@@ -109,12 +109,12 @@ void EagerPointLocation::UpdateOnSplit(Node &node)
 	AddNode(node);
 	if(node.GetLevel() != INF_N)
 	{
-		for(const Point *p: GetCell(*node.GetParent()))
+		for(const BasePoint *p: GetCell(*node.GetParent()))
 			TryChangeCenter(*p, node);
 	}
 }
 
-void EagerPointLocation::TryChangeCenter(const Point &point, Node &newcenter)
+void EagerPointLocation::TryChangeCenter(const BasePoint &point, Node &newcenter)
 {
 	Node &oldcenter = *centermap[&point];
 	float newdist = metric->Distance(point, *newcenter.GetPoint());
@@ -128,7 +128,7 @@ void EagerPointLocation::TryChangeCenter(const Point &point, Node &newcenter)
 	}
 }
 
-void EagerPointLocation::ChangeCenter(const Point &point, Node &oldcenter, Node &newcenter)
+void EagerPointLocation::ChangeCenter(const BasePoint &point, Node &oldcenter, Node &newcenter)
 {
 	float newdist = metric->Distance(point, *newcenter.GetPoint());
 	centermap[&point] = &newcenter;

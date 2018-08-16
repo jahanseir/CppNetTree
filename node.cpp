@@ -1,14 +1,14 @@
 
-#include "node.h"
-#include "utils.h"
+#include "node.hpp"
 
 #include <iostream>
 #include <queue>
 #include <map>
+#include "utils.hpp"
 
 using namespace std;
 
-Node::Node(const Point &point, int level): point(&point), level(level)
+Node::Node(const BasePoint &point, int level): point(&point), level(level)
 {
 	parent = nullptr;
 	relatives.insert(this);

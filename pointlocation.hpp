@@ -1,15 +1,14 @@
 
-#include "point.h"
-#include "node.h"
-#include "utils.h"
-#include "metric.h"
-
 #include <unordered_map>
+#include "metric.hpp"
+#include "node.hpp"
+#include "point.hpp"
+#include "utils.hpp"
 
-#ifndef POINTLOCATION_H_
-#define POINTLOCATION_H_
+#ifndef POINTLOCATION_HPP_
+#define POINTLOCATION_HPP_
 
-typedef unordered_map<const Point*, Node*, KeyHash<Point>, KeyEqual<Point>> map_centers;
+typedef unordered_map<const BasePoint*, Node*, KeyHash<BasePoint>, KeyEqual<BasePoint>> map_centers;
 typedef unordered_map<Node*, set_points, KeyHash<Node>, KeyEqual<Node>> map_cells;
 
 template <class PL>
@@ -23,15 +22,15 @@ protected:
 	Metric *metric;
 	Node *root;
 public:
-	PointLocation(NetTree<PL> &tree, vector<const Point*> points)
+	PointLocation(NetTree<PL> &tree, vector<const BasePoint*> points)
 	{
 		this->tree = &tree;
 		metric = tree.GetMetric();
 		root = tree.GetRoot();
 	}
-	virtual Node* GetCenter(const Point &point) const = 0;
-	virtual float DistToCenter(const Point &point, const Node* nearest = NULL) const = 0;
-	virtual void RemovePoint(const Point &point) = 0;
+	virtual Node* GetCenter(const BasePoint &point) const = 0;
+	virtual float DistToCenter(const BasePoint &point, const Node* nearest = NULL) const = 0;
+	virtual void RemovePoint(const BasePoint &point) = 0;
 	virtual void AddNode(Node &node) = 0;
 	virtual void UpdateOnInsertion(Node &node) = 0;
 	virtual void UpdateOnDeletion(Node &node) = 0;
@@ -44,19 +43,19 @@ class EagerPointLocation : public PointLocation<EagerPointLocation>
 	map_centers centermap;
 	map_cells innercellmap;
 	map_cells outercellmap;
-	void TryChangeCenter(const Point &point, Node &newcenter);
-	void ChangeCenter(const Point &point, Node &oldcenter, Node &newcenter);
+	void TryChangeCenter(const BasePoint &point, Node &newcenter);
+	void ChangeCenter(const BasePoint &point, Node &oldcenter, Node &newcenter);
 public:
-	EagerPointLocation(NetTree<EagerPointLocation> &tree, vector<const Point*> uninserted_points);
+	EagerPointLocation(NetTree<EagerPointLocation> &tree, vector<const BasePoint*> uninserted_points);
 	set_points GetInnerCell(set_nodes nodes) const;
 	set_points GetInnerCell(Node &node) const { return innercellmap.at(&node); }
 	set_points GetOuterCell(set_nodes nodes) const;
 	set_points GetOuterCell(Node &node) const { return outercellmap.at(&node); }
 	set_points GetCell(set_nodes nodes) const;
 	set_points GetCell(Node &node) const;
-	Node* GetCenter(const Point &point) const { return centermap.at(&point); }
-	float DistToCenter(const Point &point, const Node* nearest = NULL) const;
-	void RemovePoint(const Point &point);
+	Node* GetCenter(const BasePoint &point) const { return centermap.at(&point); }
+	float DistToCenter(const BasePoint &point, const Node* nearest = NULL) const;
+	void RemovePoint(const BasePoint &point);
 	void AddNode(Node &node);
 	void UpdateOnInsertion(Node &node);
 	void UpdateOnDeletion(Node &node);

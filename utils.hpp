@@ -5,8 +5,8 @@
 using namespace std;
 
 
-#ifndef UTILS_H_
-#define UTILS_H_
+#ifndef UTILS_HPP_
+#define UTILS_HPP_
 
 template <typename T>
 string to_string(T const& object)

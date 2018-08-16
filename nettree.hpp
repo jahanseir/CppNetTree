@@ -1,16 +1,15 @@
 
-#include "metric.h"
-#include "node.h"
-#include "pointlocation.h"
-
 #include <limits>
 #include <math.h>
 #include <iostream>
+#include "metric.hpp"
+#include "node.hpp"
+#include "pointlocation.hpp"
 
 using namespace std;
 
-#ifndef NETTREE_H_
-#define NETTREE_H_
+#ifndef NETTREE_HPP_
+#define NETTREE_HPP_
 
 #define INF_P numeric_limits<int>::max()
 #define INF_N numeric_limits<int>::min()
@@ -21,13 +20,13 @@ class NetTree
 	PL *ploc;
 	Metric *metric;
 	Node *root;
-	vector<const Point*> points;
+	vector<const BasePoint*> points;
 	const float tau;
 	const float c_p;
 	const float c_c;
 	const float c_r;
 
-	void SetRoot(const Point &p)
+	void SetRoot(const BasePoint &p)
 	{
 		root = new Node(p, INF_P);
 		Node *child = new Node(p, INF_N);
@@ -130,21 +129,21 @@ public:
 			: ploc(nullptr), metric(metric), root(nullptr), tau(tau), c_p(c_p), c_c(c_c),
 			  c_r(c_r == 0 ? (2 * c_c * tau / (tau - 4)): c_r) {};
 
-	void Construct(vector<const Point*> points)
+	void Construct(vector<const BasePoint*> points)
 	{
-		const Point &lastpoint = *points.back();
+		const BasePoint &lastpoint = *points.back();
 		points.pop_back();
 		this->points.push_back(&lastpoint);
 		SetRoot(lastpoint);
 		ploc = new PL(*this, points);
 		ploc->AddNode(*root->GetChild());
-		for(const Point *p: points)
+		for(const BasePoint *p: points)
 		{
 			Insert(*p);
 		}
 	}
 
-	void Insert(const Point &point, Node *close = nullptr)
+	void Insert(const BasePoint &point, Node *close = nullptr)
 	{
 		Node *closest = close != nullptr ? close : ploc->GetCenter(point);
 		float dist = metric->Distance(point, *closest->GetPoint());
@@ -188,7 +187,7 @@ public:
 													c_c * pow(tau, node.GetLevel() + 1);
 	}
 
-	bool IsRelative(const Node &node, const Point &point) const
+	bool IsRelative(const Node &node, const BasePoint &point) const
 	{
 		return metric->Distance(*node.GetPoint(), point) <= c_r * pow(tau, node.GetLevel());
 	}
@@ -198,12 +197,12 @@ public:
 		return IsRelative(n1, *n2.GetPoint());
 	}
 
-	int MinLevelRelative(const Point &p1, const Point &p2) const
+	int MinLevelRelative(const BasePoint &p1, const BasePoint &p2) const
 	{
 		return ceil(log(metric->Distance(p1, p2) / c_r) / log(tau));
 	}
 
-	vector<const Point*> GetPoints() const { return points; }
+	vector<const BasePoint*> GetPoints() const { return points; }
 
 	Metric* GetMetric() const { return metric; }
 
