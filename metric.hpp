@@ -9,14 +9,14 @@
 
 using namespace std;
 
-#ifndef METRIC_H_
-#define METRIC_H_
+#ifndef METRIC_HPP_
+#define METRIC_HPP_
 
 class Metric
 {
 public:
 	virtual float Distance(const BasePoint &p1, const BasePoint &p2) = 0;
-	virtual float Distance(const Node &n1, const Node &n2)
+	float Distance(const Node &n1, const Node &n2)
 	{
 		return Distance(*n1.GetPoint(), *n2.GetPoint());
 	}
