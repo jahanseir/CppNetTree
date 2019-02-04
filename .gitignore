@@ -30,3 +30,14 @@
 *.exe
 *.out
 *.app
+
+# OS Files
+.DS_Store
+
+# Cython
+cython/build/
+cython/__pycache__
+cython/*.cpp
+*.pyd
+
+

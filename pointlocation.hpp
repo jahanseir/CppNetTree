@@ -1,3 +1,8 @@
+/*
+ * @PointLocation is an abstract base class that defines the skeleton of
+ * point location strategies needed to build a net-tree. The template argument is necessary
+ * because each @NetTree object should know its point location strategy.
+ */
 
 #include <unordered_map>
 #include "metric.hpp"
@@ -8,8 +13,8 @@
 #ifndef POINTLOCATION_HPP_
 #define POINTLOCATION_HPP_
 
-typedef unordered_map<const BasePoint*, Node*, KeyHash<BasePoint>, KeyEqual<BasePoint>> map_centers;
-typedef unordered_map<Node*, set_points, KeyHash<Node>, KeyEqual<Node>> map_cells;
+typedef unordered_map<const BasePoint*, Node*> map_centers;
+typedef unordered_map<Node*, set_points> map_cells;
 
 template <class PL>
 class NetTree;
@@ -44,7 +49,7 @@ class EagerPointLocation : public PointLocation<EagerPointLocation>
 	map_cells innercellmap;
 	map_cells outercellmap;
 	void TryChangeCenter(const BasePoint &point, Node &newcenter);
-	void ChangeCenter(const BasePoint &point, Node &oldcenter, Node &newcenter);
+	void ChangeCenter(const BasePoint &point, Node &oldcenter, Node &newcenter, float todist = 0);
 public:
 	EagerPointLocation(NetTree<EagerPointLocation> &tree, vector<const BasePoint*> uninserted_points);
 	set_points GetInnerCell(set_nodes nodes) const;

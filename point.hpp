@@ -1,3 +1,8 @@
+/*
+ * @BasePoint is an abstract class defining the generic behaviors and attributes of points in a metric space.
+ * @Point is a template class which inherits from @BasePoint. The template argument enables one
+ * to customize the underlying space (coordinate system).
+ */
 
 #include <vector>
 #include <string>
@@ -30,7 +35,7 @@ public:
 	}
 };
 
-typedef unordered_set<const BasePoint*, KeyHash<BasePoint>, KeyEqual<BasePoint>> set_points;
+typedef unordered_set<const BasePoint*> set_points;
 
 template <class T>
 class Point : public BasePoint
@@ -59,6 +64,11 @@ public:
 	{
 		this->coords = new T[dimension];
 		copy(other.coords, other.coords + dimension, this->coords);
+	}
+
+	~Point()
+	{
+		delete[] coords;
 	}
 
 	void* operator[](int index) const { return this->coords + index; }

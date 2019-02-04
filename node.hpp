@@ -1,3 +1,6 @@
+/*
+ * Defines class @Node which is a building block of net-trees
+ */
 
 #include "point.hpp"
 #include "utils.hpp"
@@ -12,7 +15,7 @@ using namespace std;
 
 class Node;
 
-typedef unordered_set<Node*, KeyHash<Node>, KeyEqual<Node>> set_nodes;
+typedef unordered_set<Node*> set_nodes;
 
 class Node
 {
@@ -23,6 +26,7 @@ class Node
 	set_nodes relatives;
 public:
 	Node(const BasePoint &point, int level);
+	~Node();
 	set_nodes GetRelatives() const { return relatives; }
 	set_nodes GetChildren() const { return children; }
 	Node* GetChild() const { return children.size() > 0 ? *children.begin() : nullptr; }

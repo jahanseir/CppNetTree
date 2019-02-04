@@ -1,3 +1,7 @@
+/*
+ * Class @NetTree receives a template argument that specifies the point location strategy
+ * used in a net-tree object. The @Construct method builds a net-tree incrementally.
+ */
 
 #include <limits>
 #include <math.h>
@@ -35,7 +39,7 @@ class NetTree
 
 	void UpdateRelatives(Node &node, Node &closest)
 	{
-		for(auto other: GetChildren(closest.GetParent()->GetRelatives()))
+		for(Node *other: GetChildren(closest.GetParent()->GetRelatives()))
 			if(IsRelative(node, *other))
 			{
 				if(other->GetLevel() < node.GetLevel())
@@ -48,7 +52,7 @@ class NetTree
 	{
 		// we delete nodes at the end because deletion of a node in the for loop causes a dangling reference
 		vector<Node*> nodestodelete;
-		for(auto other: GetChildren(node.GetRelatives()))
+		for(Node *other: GetChildren(node.GetRelatives()))
 			if(other->GetParent() &&
 					metric->Distance(node, *other) < metric->Distance(*other, *other->GetParent()))
 			{
@@ -129,6 +133,14 @@ public:
 			: ploc(nullptr), metric(metric), root(nullptr), tau(tau), c_p(c_p), c_c(c_c),
 			  c_r(c_r == 0 ? (2 * c_c * tau / (tau - 4)): c_r) {};
 
+	~NetTree()
+	{
+		if(root)
+			delete root;
+		if(ploc)
+			delete ploc;
+	}
+
 	void Construct(vector<const BasePoint*> points)
 	{
 		const BasePoint &lastpoint = *points.back();
@@ -146,9 +158,9 @@ public:
 	void Insert(const BasePoint &point, Node *close = nullptr)
 	{
 		Node *closest = close != nullptr ? close : ploc->GetCenter(point);
-		float dist = metric->Distance(point, *closest->GetPoint());
+		float dist = ploc->DistToCenter(point, closest);
 		ploc->RemovePoint(point);
-		int level = MinLevelRelative(point, *closest->GetPoint());
+		int level = MinLevelRelative(point, *closest->GetPoint(), dist);
 		if(dist <= c_p * pow(tau, level))
 			level--;
 		if(level < closest->GetLevel())
@@ -156,7 +168,7 @@ public:
 			if(closest->GetChild()->GetLevel() < level)
 				closest = Split(closest, level);
 			else
-				for(auto n: closest->GetChildren())
+				for(Node *n: closest->GetChildren())
 					if(*n->GetPoint() == *closest->GetPoint())
 					{
 						closest = n;
@@ -187,19 +199,21 @@ public:
 													c_c * pow(tau, node.GetLevel() + 1);
 	}
 
-	bool IsRelative(const Node &node, const BasePoint &point) const
+	bool IsRelative(const Node &node, const BasePoint &point, float computeddist = 0) const
 	{
-		return metric->Distance(*node.GetPoint(), point) <= c_r * pow(tau, node.GetLevel());
+		float dist = computeddist > 0 ? computeddist: metric->Distance(*node.GetPoint(), point);
+		return dist <= c_r * pow(tau, node.GetLevel());
 	}
 
-	bool IsRelative(const Node &n1, const Node &n2) const
+	bool IsRelative(const Node &n1, const Node &n2, float computeddist = 0) const
 	{
-		return IsRelative(n1, *n2.GetPoint());
+		return IsRelative(n1, *n2.GetPoint(), computeddist);
 	}
 
-	int MinLevelRelative(const BasePoint &p1, const BasePoint &p2) const
+	int MinLevelRelative(const BasePoint &p1, const BasePoint &p2, float computeddist = 0) const
 	{
-		return ceil(log(metric->Distance(p1, p2) / c_r) / log(tau));
+		float dist = computeddist > 0 ? computeddist: metric->Distance(p1, p2);
+		return ceil(log(dist / c_r) / log(tau));
 	}
 
 	vector<const BasePoint*> GetPoints() const { return points; }

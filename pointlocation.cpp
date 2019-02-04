@@ -118,19 +118,19 @@ void EagerPointLocation::TryChangeCenter(const BasePoint &point, Node &newcenter
 {
 	Node &oldcenter = *centermap[&point];
 	float newdist = metric->Distance(point, *newcenter.GetPoint());
-	if(tree->IsRelative(newcenter, point))
+	if(tree->IsRelative(newcenter, point, newdist))
 	{
 		if((oldcenter.GetPoint() == newcenter.GetPoint() &&
 				oldcenter.GetLevel() > newcenter.GetLevel()) ||
 			(oldcenter.GetPoint() != newcenter.GetPoint() &&
-					newdist < metric->Distance(point, *oldcenter.GetPoint())))
-			ChangeCenter(point, oldcenter, newcenter);
+					newdist < DistToCenter(point, &oldcenter)))
+			ChangeCenter(point, oldcenter, newcenter, newdist);
 	}
 }
 
-void EagerPointLocation::ChangeCenter(const BasePoint &point, Node &oldcenter, Node &newcenter)
+void EagerPointLocation::ChangeCenter(const BasePoint &point, Node &oldcenter, Node &newcenter, float todist)
 {
-	float newdist = metric->Distance(point, *newcenter.GetPoint());
+	float newdist = todist > 0 ? todist : metric->Distance(point, *newcenter.GetPoint());
 	centermap[&point] = &newcenter;
 	if(newdist <= tree->GetCP() * pow(tree->GetTau(), newcenter.GetLevel() - 1) / 2)
 		innercellmap[&newcenter].insert(&point);

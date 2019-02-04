@@ -14,14 +14,24 @@ Node::Node(const BasePoint &point, int level): point(&point), level(level)
 	relatives.insert(this);
 }
 
+Node::~Node()
+{
+	for(auto rel: relatives)
+		if(rel != this)
+			rel->relatives.erase(this);
+	relatives.clear();
+	if(parent)
+		parent->children.erase(this);
+	while(children.size() > 0)
+		delete GetChild();
+	children.clear();
+}
+
 ostream& operator<<(ostream &strm, const Node &node)
 {
 	strm << &node;
 	return strm;
 }
-
-// required for set and dictionaries because in those cases keys are pointers of Node
-// and nodes with the same points and levels should be evaluated the same
 
 ostream& operator<<(ostream &strm, const Node *node)
 {
